@@ -1,0 +1,210 @@
+function tree = CART(root,data)        
+for i=1:size(data,2)-1
+    train(:,i)=data(:,i);
+end
+record=[];
+Y=data(:,size(data,2));
+Sort_total=sort(train);
+data_size=size(train,1);
+
+if data_size==1
+    root.result=Y(1)
+    tree=root;
+    return
+end
+
+for i=1:size(train,2)
+   Sort_data=Sort_total(:,i);
+   Stump_data=[Sort_data(1)-1;Sort_data;Sort_data(data_size)+1];
+   for j=1:data_size+1
+       theda=(Stump_data(j)+Stump_data(j+1))/2;
+       S=1;
+       left_size=0;
+       right_size=0;
+       pl=0;
+       nl=0;
+       pr=0;
+       nr=0;
+       for k=1:data_size
+           if sign(train(k,i)-theda) ==-1                
+             left_size=left_size+1;
+             if Y(k)==1
+               pl=pl+1;
+             else
+               nl=nl+1;
+             end
+           else 
+             right_size=right_size+1;
+             if Y(k)==1
+               pr=pr+1;
+             else
+               nr=nr+1;
+             end
+           end
+       end  
+       left_size;
+       pl=pl/left_size;
+       nl=nl/left_size;
+       pr=pr/right_size;
+       nr=nr/right_size;
+       ip_left=(1-pl^2-nl^2);
+       ip_right=(1-pr^2-nr^2);
+       
+
+       % gini index
+       gini=left_size*ip_left+right_size*ip_right;
+       record=[record; theda i gini ip_left ip_right pl pr;];
+   end
+end
+   [minum,index]=min(record(:,3));
+   
+   % terminal conditoin
+   theda=record(index,1);
+   dim=record(index,2);
+   ip_left=record(index,4);
+   ip_right=record(index,5);
+   pl=record(index,6);
+   pr=record(index,7);
+   right_data=[];
+   left_data=[];
+   temp_left=CRT;
+   temp_right=CRT;
+   for k=1:data_size
+       theda=record(index,1);
+       dim=record(index,2); 
+       if sign(train(k,dim)-theda) ==-1
+           left_data=[left_data; data(k,:)];
+       else
+           right_data=[right_data; data(k,:)];
+       end    
+   end
+   temp=CRT;
+   if pl==1
+       root.theda=theda;
+       root.dim=dim;
+       temp.result=1;
+       root.left=temp;
+   elseif pl ==0
+       root.theda=theda;
+       root.dim=dim;       
+       temp.result=-1;
+       root.left=temp;
+   else
+       
+       left_child= CART(temp_left,left_data);
+       root.left=left_child; 
+   end
+   if pr==1
+       temp.result=1;
+       root.right=temp;
+   elseif pr ==0
+       temp.result=-1;
+       root.right=temp;
+   else
+       right_child= CART(temp_left,left_data);
+       root.right=right_child; 
+   end   
+   
+   
+   if ip_left ==0 
+        root.theda=theda;
+        root.dim=dim;
+        temp=CRT;
+        if pl ==1
+            temp.result=1;
+            root.left=temp;
+        else
+            temp.result=-1;
+            root.left=temp;
+        end
+        if ip_right ~= 0
+            for k=1:data_size
+               if sign(train(k,dim)-theda) ==1
+                   right_data=[right_data; data(k,:)];
+               end    
+            end
+            right_child= CART(temp_right,right_data);
+            root.right=right_child;
+        else
+            if pr == 1
+                temp.result=1;
+                root.right=temp;
+            else
+                temp.result=-1;
+                root.right=temp;
+            end
+        end
+        data
+        left_data
+        right_data
+        l=data_size-size(right_data,1)
+        r=size(right_data,1)
+        record(index,:)
+        tree=root;
+        return
+   end 
+   if   ip_right==0
+        root.theda=theda;
+        root.dim=dim;
+        temp=CRT;
+        if pr ==1
+            temp.result=1;
+            root.right=temp;
+        else
+            temp.result=-1;
+            root.right=temp;
+        end
+        if ip_left ~=0
+            for k=1:data_size
+               if sign(train(k,dim)-theda) ==-1
+                   left_data=[left_data; data(k,:)];
+               end
+               left_child= CART(temp_left,left_data);
+               root.left=left_child;               
+            end
+        else
+            if pl ==1
+                temp.result=1;
+                root.left=temp;
+            else
+                temp.result=-1;
+                root.left=temp;
+            end
+        end
+        data
+        l=size(left_data,1)
+        r=data_size-size(left_data,1)
+        record(index,:)
+        tree=root;
+        return
+   end
+   
+   right_data=[];
+   left_data=[];
+   for k=1:data_size
+       theda=record(index,1);
+       dim=record(index,2); 
+       if sign(train(k,dim)-theda) ==-1
+           left_data=[left_data; data(k,:)];
+       else
+           right_data=[right_data; data(k,:)];
+       end    
+   end
+   root.theda=record(index,1);
+   root.dim=record(index,2);
+   temp_left=CRT;
+   temp_right=CRT;
+   record=[];
+   l=size(left_data,1)
+   left_data;
+   r=size(right_data,1)
+   left_child = CART(temp_left,left_data); 
+   right_child= CART(temp_right,right_data);
+   root.left=left_child;
+   root.right=right_child;
+   tree=root;
+   return;
+end    
+    
+    
+
